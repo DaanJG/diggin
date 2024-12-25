@@ -22,7 +22,6 @@ SPOTIFY_AUTH_URL = "https://accounts.spotify.com/api/token"
 SPOTIFY_SEARCH_URL = "https://api.spotify.com/v1/search"
 SPOTIFY_ALBUM_URL = "https://api.spotify.com/v1/albums"
 SPOTIFY_TRACK_URL = "https://api.spotify.com/v1/tracks"
-SPOTIFY_AUDIO_FEATURES_URL = "https://api.spotify.com/v1/audio-features"
 
 # Authenticate with Spotify
 def authenticate_spotify():
@@ -103,18 +102,6 @@ def get_spotify_track_details(spotify_token, track_id):
     print(f"Failed to fetch details for track ID: {track_id}. {response.status_code}, {response.text}")
     return None, None, None, None
 
-# Get audio features for a Spotify track
-def get_audio_features(spotify_token, track_id):
-    print(f"Fetching audio features for track ID: {track_id}")
-    response = requests.get(
-        f"{SPOTIFY_AUDIO_FEATURES_URL}/{track_id}",
-        headers={"Authorization": f"Bearer {spotify_token}"},
-    )
-    if response.status_code == 200:
-        return response.json()
-    print(f"Failed to fetch audio features for track ID: {track_id}. {response.status_code}, {response.text}")
-    return None
-
 # Search for a single track on Spotify
 def search_spotify_track(spotify_token, track_title, artist):
     query = f"track:{track_title} artist:{artist}"
@@ -179,7 +166,6 @@ def match_discogs_with_spotify(limit: Optional[int] = None):
 
                 if spotify_track:
                     spotify_album, spotify_artist, spotify_title, spotify_track_id = get_spotify_track_details(spotify_token, spotify_track["id"])
-                    audio_features = get_audio_features(spotify_token, spotify_track_id)
                     mapping.append({
                         "Discogs Release Title": release_title,
                         "Discogs Track Artist": artist,
@@ -188,14 +174,12 @@ def match_discogs_with_spotify(limit: Optional[int] = None):
                         "Spotify Track Artist": spotify_artist,
                         "Spotify Track Title": spotify_title,
                         "Spotify Track ID": spotify_track_id,
-                        "Audio Features": audio_features,
                     })
                 else:
                     print(f"Track '{track['title']}' not found in album '{release_title}'. Searching individually.")
                     spotify_track = search_spotify_track(spotify_token, track["title"], artist)
                     if spotify_track:
                         spotify_album, spotify_artist, spotify_title, spotify_track_id = get_spotify_track_details(spotify_token, spotify_track["id"])
-                        audio_features = get_audio_features(spotify_token, spotify_track_id)
                         mapping.append({
                             "Discogs Release Title": release_title,
                             "Discogs Track Artist": artist,
@@ -204,7 +188,6 @@ def match_discogs_with_spotify(limit: Optional[int] = None):
                             "Spotify Track Artist": spotify_artist,
                             "Spotify Track Title": spotify_title,
                             "Spotify Track ID": spotify_track_id,
-                            "Audio Features": audio_features,
                         })
                     else:
                         print(f"No match found for track: '{track['title']}' by '{artist}'.")
@@ -216,7 +199,6 @@ def match_discogs_with_spotify(limit: Optional[int] = None):
                             "Spotify Track Artist": None,
                             "Spotify Track Title": None,
                             "Spotify Track ID": None,
-                            "Audio Features": None,
                         })
         else:
             print(f"No Spotify album found for release: '{release_title}' by '{artist}'. Searching tracks individually.")
@@ -226,7 +208,6 @@ def match_discogs_with_spotify(limit: Optional[int] = None):
                 spotify_track = search_spotify_track(spotify_token, track["title"], artist)
                 if spotify_track:
                     spotify_album, spotify_artist, spotify_title, spotify_track_id = get_spotify_track_details(spotify_token, spotify_track["id"])
-                    audio_features = get_audio_features(spotify_token, spotify_track_id)
                     mapping.append({
                         "Discogs Release Title": release_title,
                         "Discogs Track Artist": artist,
@@ -235,7 +216,6 @@ def match_discogs_with_spotify(limit: Optional[int] = None):
                         "Spotify Track Artist": spotify_artist,
                         "Spotify Track Title": spotify_title,
                         "Spotify Track ID": spotify_track_id,
-                        "Audio Features": audio_features,
                     })
                 else:
                     print(f"No match found for track: '{track['title']}' by '{artist}'.")
@@ -247,7 +227,6 @@ def match_discogs_with_spotify(limit: Optional[int] = None):
                         "Spotify Track Artist": None,
                         "Spotify Track Title": None,
                         "Spotify Track ID": None,
-                        "Audio Features": None,
                     })
 
         # Respect API rate limits
